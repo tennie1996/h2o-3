@@ -37,7 +37,7 @@ class H2OGeneralizedLinearEstimator(H2OEstimator):
                    "lambda_search", "early_stopping", "nlambdas", "standardize", "missing_values_handling",
                    "plug_values", "compute_p_values", "remove_collinear_columns", "intercept", "non_negative",
                    "max_iterations", "objective_epsilon", "beta_epsilon", "gradient_epsilon", "link", "rand_link",
-                   "startval", "calc_like", "HGLM", "prior", "lambda_min_ratio", "beta_constraints",
+                   "startval", "calc_like", "HGLM", "prior", "cold_start", "lambda_min_ratio", "beta_constraints",
                    "max_active_predictors", "interactions", "interaction_pairs", "obj_reg", "export_checkpoints_dir",
                    "stopping_rounds", "stopping_metric", "stopping_tolerance", "balance_classes",
                    "class_sampling_factors", "max_after_balance_size", "max_confusion_matrix_size", "max_hit_ratio_k",
@@ -1254,7 +1254,7 @@ class H2OGeneralizedLinearEstimator(H2OEstimator):
     @property
     def startval(self):
         """
-        double array to initialize fixed and random coefficients for HGLM.
+        double array to initialize fixed and random coefficients for HGLM, coefficients for GLM.
 
         Type: ``List[float]``.
         """
@@ -1324,6 +1324,23 @@ class H2OGeneralizedLinearEstimator(H2OEstimator):
     def prior(self, prior):
         assert_is_type(prior, None, numeric)
         self._parms["prior"] = prior
+
+
+    @property
+    def cold_start(self):
+        """
+        Only applicable to multiple alpha/lambda values.  If false, build the next model for next set of alpha/lambda
+        values starting from the values provided by current model.  If true will start GLM model from scratch.  Default
+        to false.
+
+        Type: ``bool``  (default: ``False``).
+        """
+        return self._parms.get("cold_start")
+
+    @cold_start.setter
+    def cold_start(self, cold_start):
+        assert_is_type(cold_start, None, bool)
+        self._parms["cold_start"] = cold_start
 
 
     @property
@@ -1822,6 +1839,7 @@ class H2OGeneralizedLinearEstimator(H2OEstimator):
         ns = x.pop("coefficient_names")
         res = {
             "lambdas": x["lambdas"],
+            "alphas": x["alphas"],
             "explained_deviance_train": x["explained_deviance_train"],
             "explained_deviance_valid": x["explained_deviance_valid"],
             "coefficients": [dict(zip(ns, y)) for y in x["coefficients"]],

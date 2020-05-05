@@ -63,6 +63,7 @@ public class GLMV3 extends ModelBuilderSchema<GLM,GLMV3,GLMV3.GLMParametersV3> {
             "calc_like", // HGLM, true will return likelhood function value
             "HGLM",  // boolean: true - enabled HGLM, false - normal GLM
             "prior",
+             "cold_start", // if true, will start GLM model from initial values and conditions
             "lambda_min_ratio",
             "beta_constraints",
             "max_active_predictors",
@@ -133,6 +134,11 @@ public class GLMV3 extends ModelBuilderSchema<GLM,GLMV3,GLMV3.GLMParametersV3> {
     @API(help = "Standardize numeric columns to have zero mean and unit variance", level = Level.critical)
     public boolean standardize;
 
+    @API(help = "Only applicable to multiple alpha/lambda values.  If false, build the next model for next set of " +
+            "alpha/lambda values starting from the values provided by current model.  If true will start GLM model " +
+            "from scratch.  Default to false.", level = Level.critical)
+    public boolean cold_start;
+
     @API(help = "Handling of missing values. Either MeanImputation, Skip or PlugValues.", values = { "MeanImputation", "Skip", "PlugValues" }, level = API.Level.expert, direction=API.Direction.INOUT, gridable = true)
     public GLMParameters.MissingValuesHandling missing_values_handling;
 
@@ -170,7 +176,7 @@ public class GLMV3 extends ModelBuilderSchema<GLM,GLMV3,GLMV3.GLMParametersV3> {
     @API(help = "Link function array for random component in HGLM.", values = {"[identity]", "[family_default]"},level = Level.secondary, gridable=true)   
     public GLMParameters.Link[] rand_link; // link function for random components
 
-    @API(help = "double array to initialize fixed and random coefficients for HGLM.", gridable=true)
+    @API(help = "double array to initialize fixed and random coefficients for HGLM, coefficients for GLM.", gridable=true)
     public double[] startval;
     
     @API(help = "random columns indices for HGLM.")
